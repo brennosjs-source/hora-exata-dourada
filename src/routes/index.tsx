@@ -1,24 +1,51 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Relógio — Hora exata e data" },
+      { name: "description", content: "Relógio com a hora exata até os segundos e a data de hoje." },
+      { property: "og:title", content: "Relógio — Hora exata e data" },
+      { property: "og:description", content: "Hora exata até os segundos e a data de hoje." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
+const pad = (n: number) => String(n).padStart(2, "0");
+
 function Index() {
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    setNow(new Date());
+    const id = setInterval(() => setNow(new Date()), 250);
+    return () => clearInterval(id);
+  }, []);
+
+  const date = now
+    ? now.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+    : "";
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <main className="flex min-h-screen flex-col items-center justify-center gap-6 bg-background px-4 text-foreground">
+      <h1 className="sr-only">Relógio</h1>
+      <div className="font-mono text-6xl font-bold tabular-nums tracking-tight sm:text-8xl md:text-9xl">
+        {now ? (
+          <>
+            {pad(now.getHours())}
+            <span className="text-primary">:</span>
+            {pad(now.getMinutes())}
+            <span className="text-primary">:</span>
+            <span className="text-primary">{pad(now.getSeconds())}</span>
+          </>
+        ) : (
+          "--:--:--"
+        )}
+      </div>
+      <p className="text-lg capitalize text-muted-foreground sm:text-2xl">{date}</p>
+    </main>
   );
 }
